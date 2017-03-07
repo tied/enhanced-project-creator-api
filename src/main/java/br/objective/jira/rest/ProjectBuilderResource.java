@@ -98,7 +98,7 @@ public class ProjectBuilderResource {
 		ProjectCreationData projectData = new ProjectCreationData.Builder()
 				.withName(data.name)
 				.withKey(data.key)
-				.withType(data.type)
+				.withType(data.projectTypeKey)
 				.withProjectTemplateKey(data.projectTemplateKey)
 				.withDescription(data.description)
 				.withLead(lead)

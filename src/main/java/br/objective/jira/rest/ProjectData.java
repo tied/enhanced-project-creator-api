@@ -4,7 +4,7 @@ public class ProjectData {
 	public String name;
 	public String key;
 	public String description;
-	public String type;
+	public String projectTypeKey;
 	public String projectTemplateKey;
 	public String lead;
 	public Long permissionScheme;
