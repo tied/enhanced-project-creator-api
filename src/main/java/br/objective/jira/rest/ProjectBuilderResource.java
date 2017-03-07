@@ -21,13 +21,14 @@ import com.atlassian.jira.issue.fields.config.FieldConfig;
 import com.atlassian.jira.issue.fields.config.FieldConfigScheme;
 import com.atlassian.jira.issue.fields.config.manager.FieldConfigManager;
 import com.atlassian.jira.issue.fields.config.manager.FieldConfigSchemeManager;
+import com.atlassian.jira.issue.fields.layout.field.FieldConfigurationScheme;
 import com.atlassian.jira.issue.fields.screen.issuetype.IssueTypeScreenScheme;
 import com.atlassian.jira.project.AssigneeTypes;
 import com.atlassian.jira.project.Project;
 import com.atlassian.jira.scheme.Scheme;
 import com.atlassian.jira.user.ApplicationUser;
 
-@Path("/message")
+@Path("/project")
 public class ProjectBuilderResource {
 
 	@POST
@@ -35,9 +36,9 @@ public class ProjectBuilderResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response createProject(ProjectData data) {
 		ProjectBuilderResponse response = createNewProject(data);
-		if (response.hasError)
-			return Response.status(Response.Status.BAD_REQUEST).entity(response).build();
-		return Response.ok(response).build();
+		if (response.success)
+			return Response.ok(response).build();
+		return Response.status(Response.Status.BAD_REQUEST).entity(response).build();
 	}
 	
 	private ProjectBuilderResponse createNewProject(ProjectData data)
@@ -56,24 +57,24 @@ public class ProjectBuilderResource {
 	
 	    String currentAction = "";
 	    try {
-	    	currentAction = "associating PermissionScheme"; 
-		    associatePermissionScheme(data, newProject);
-		    
-		    currentAction = "associating IssueTypeScreenScheme";
-	    	associateIssueTypeScreenScheme(data, newProject);
-	    	
-	    	currentAction = "associating WorkflowScheme";
-	    	associateWorkflowScheme(data, newProject);
-	    	
-	    	currentAction = "associating NotificationScheme";
-		    associateNotificationScheme(data, newProject);
-		    
-		    currentAction = "associating FieldConfigurationScheme";
-		    associateFieldConfigurationScheme(data, newProject);
-		    
 		    currentAction = "associating IssueTypeScheme";
 		    associateIssueTypeScheme(data, newProject);
 		    
+	    	currentAction = "associating WorkflowScheme";
+	    	associateWorkflowScheme(data, newProject);
+	    	
+		    currentAction = "associating IssueTypeScreenScheme";
+	    	associateIssueTypeScreenScheme(data, newProject);
+	    	
+		    currentAction = "associating FieldConfigurationScheme";
+		    associateFieldConfigurationScheme(data, newProject);
+		    
+	    	currentAction = "associating NotificationScheme";
+		    associateNotificationScheme(data, newProject);
+		    
+	    	currentAction = "associating PermissionScheme"; 
+		    associatePermissionScheme(data, newProject);
+		    	    	
 		    currentAction = "associating CustomFields";
 		    associateCustomFields(data, newProject);
 	    }
@@ -91,6 +92,9 @@ public class ProjectBuilderResource {
 	}
 
 	private Project createBasicProject(ProjectData data, ProjectBuilderResponse response, ApplicationUser lead) {
+		if (ComponentAccessor.getProjectManager().getProjectByCurrentKey(data.key) != null) 
+			throw new IllegalArgumentException("Project with key " + data.key + " already exists");
+		
 		ProjectCreationData projectData = new ProjectCreationData.Builder()
 				.withName(data.name)
 				.withKey(data.key)
@@ -111,8 +115,11 @@ public class ProjectBuilderResource {
 
 	private void associatePermissionScheme(ProjectData data, Project newProject) {
 		if (data.permissionScheme != null) {
-	    	ComponentAccessor.getPermissionSchemeManager().addSchemeToProject(newProject, 
-	    			ComponentAccessor.getPermissionSchemeManager().getSchemeObject(data.permissionScheme));
+	    	Scheme permissionScheme = ComponentAccessor.getPermissionSchemeManager().getSchemeObject(data.permissionScheme);
+	    	if (permissionScheme == null)
+	    		throw new IllegalArgumentException("PermissionScheme id " + data.permissionScheme + " not found");
+	    	
+			ComponentAccessor.getPermissionSchemeManager().addSchemeToProject(newProject, permissionScheme);
 	    }
 	    else
 	    	ComponentAccessor.getPermissionSchemeManager().addDefaultSchemeToProject(newProject);
@@ -128,6 +135,8 @@ public class ProjectBuilderResource {
 		
 		for (Long cfId : data.customFields) {
 			CustomField customField = customFieldManager.getCustomFieldObject(cfId);
+			if (customField == null) 
+				throw new IllegalArgumentException("Custom Field id " + cfId + " not found");
 			
             for (FieldConfigScheme fieldConfigScheme : fieldConfigSchemeManager.getConfigSchemesForField(customField)){
                 Long fcsId = fieldConfigScheme.getId();
@@ -158,18 +167,13 @@ public class ProjectBuilderResource {
 	}
 
 	private void associateIssueTypeScheme(ProjectData data, Project newProject) {
-		if (data.issueTypeScheme == null)
+		Long issueTypeSchemeId = data.issueTypeScheme;
+		if (issueTypeSchemeId == null)
 			return;
 		
-		List<FieldConfigScheme> allSchemes = ComponentAccessor.getIssueTypeSchemeManager().getAllSchemes();
-		FieldConfigScheme issueTypeScheme = ComponentAccessor.getIssueTypeSchemeManager().getDefaultIssueTypeScheme();
-		
-		for (FieldConfigScheme aScheme : allSchemes) {
-			if (aScheme.getId().equals(data.issueTypeScheme)) {
-				issueTypeScheme = aScheme;
-				break;
-			}
-		}
+		FieldConfigScheme issueTypeScheme = findIssueTypeSchemeGivenId(issueTypeSchemeId);
+		if (issueTypeScheme == null)
+			throw new IllegalArgumentException("IssueTypeScheme id " + issueTypeSchemeId + " not found.");
 		
 	    List<JiraContextNode> jiraIssueContexts = CustomFieldUtils.buildJiraIssueContexts(true, 
 	    		new Long[]{newProject.getId()}, 
@@ -181,9 +185,24 @@ public class ProjectBuilderResource {
 	    		ComponentAccessor.getFieldManager().getConfigurableField(IssueFieldConstants.ISSUE_TYPE));
 	}
 
+	private FieldConfigScheme findIssueTypeSchemeGivenId(Long issueTypeSchemeId) {
+		List<FieldConfigScheme> allSchemes = ComponentAccessor.getIssueTypeSchemeManager().getAllSchemes();
+		
+		for (FieldConfigScheme aScheme : allSchemes) {
+			if (aScheme.getId().equals(issueTypeSchemeId)) 
+				return aScheme;
+		}
+		return null;
+	}
+
 	private void associateFieldConfigurationScheme(ProjectData data, Project newProject) {
-		if (data.fieldConfigurationScheme != null)
-	    	ComponentAccessor.getFieldLayoutManager().addSchemeAssociation(newProject, data.fieldConfigurationScheme);
+		if (data.fieldConfigurationScheme != null) {
+			FieldConfigurationScheme fieldConfigurationScheme = ComponentAccessor.getFieldLayoutManager().getFieldConfigurationScheme(data.fieldConfigurationScheme);
+			if (fieldConfigurationScheme == null)
+				throw new IllegalArgumentException("FieldConfigurationSchema with id " + data.fieldConfigurationScheme + " not found.");
+			
+			ComponentAccessor.getFieldLayoutManager().addSchemeAssociation(newProject, data.fieldConfigurationScheme);
+		}
 	}
 
 	private void associateNotificationScheme(ProjectData data, Project newProject) {
@@ -191,6 +210,8 @@ public class ProjectBuilderResource {
 	    	ComponentAccessor.getNotificationSchemeManager().addDefaultSchemeToProject(newProject);
 	    else {
 	    	Scheme notificationScheme = ComponentAccessor.getNotificationSchemeManager().getSchemeObject(data.notificationScheme);
+	    	if (notificationScheme == null)
+	    		throw new IllegalArgumentException("NotificationScheme id " + data.notificationScheme + " not found");
 	    	ComponentAccessor.getNotificationSchemeManager().addSchemeToProject(newProject, notificationScheme);
 	    }
 	}
@@ -200,6 +221,8 @@ public class ProjectBuilderResource {
 	    	ComponentAccessor.getWorkflowSchemeManager().addDefaultSchemeToProject(newProject);
 	    else {
 	    	Scheme workflowScheme = ComponentAccessor.getWorkflowSchemeManager().getSchemeObject(data.workflowScheme);
+	    	if (workflowScheme == null)
+	    		throw new IllegalArgumentException("WorkflowScheme id " + data.workflowScheme + " not found");
 	    	ComponentAccessor.getWorkflowSchemeManager().addSchemeToProject(newProject, workflowScheme);
 	    }
 	}
