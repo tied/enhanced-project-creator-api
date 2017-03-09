@@ -10,7 +10,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.atlassian.jira.bc.project.ProjectCreationData;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.IssueFieldConstants;
@@ -23,7 +22,6 @@ import com.atlassian.jira.issue.fields.config.manager.FieldConfigManager;
 import com.atlassian.jira.issue.fields.config.manager.FieldConfigSchemeManager;
 import com.atlassian.jira.issue.fields.layout.field.FieldConfigurationScheme;
 import com.atlassian.jira.issue.fields.screen.issuetype.IssueTypeScreenScheme;
-import com.atlassian.jira.project.AssigneeTypes;
 import com.atlassian.jira.project.Project;
 import com.atlassian.jira.scheme.Scheme;
 import com.atlassian.jira.user.ApplicationUser;
@@ -50,7 +48,8 @@ public class ProjectBuilderResource {
 	    
 	    final Project newProject;
 	    try {
-	    	newProject = createBasicProject(data, response, lead);
+			ensureProjectDoesnExist(data);
+	    	newProject = ProjectCreationWrapper.createBasicProject(data, response, lead);
 	    }catch(Exception e) {
 	    	return response.withError("Failed to created project", e);
 	    }
@@ -91,26 +90,9 @@ public class ProjectBuilderResource {
 	    return response;
 	}
 
-	private Project createBasicProject(ProjectData data, ProjectBuilderResponse response, ApplicationUser lead) {
+	private void ensureProjectDoesnExist(ProjectData data) {
 		if (ComponentAccessor.getProjectManager().getProjectByCurrentKey(data.key) != null) 
 			throw new IllegalArgumentException("Project with key " + data.key + " already exists");
-		
-		ProjectCreationData projectData = new ProjectCreationData.Builder()
-				.withName(data.name)
-				.withKey(data.key)
-				.withType(data.projectTypeKey)
-				.withProjectTemplateKey(data.projectTemplateKey)
-				.withDescription(data.description)
-				.withLead(lead)
-				.withAssigneeType(AssigneeTypes.PROJECT_LEAD)
-				.build();
-		
-	    Project newProject = ComponentAccessor.getProjectManager().createProject(
-	    		ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser(), 
-	    		projectData);
-	    
-	    response.idOfCreatedProject = newProject.getId();
-		return newProject;
 	}
 
 	private void associatePermissionScheme(ProjectData data, Project newProject) {
