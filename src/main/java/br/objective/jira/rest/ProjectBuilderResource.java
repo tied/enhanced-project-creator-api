@@ -95,22 +95,7 @@ public class ProjectBuilderResource {
 		if (ComponentAccessor.getProjectManager().getProjectByCurrentKey(data.key) != null) 
 			throw new IllegalArgumentException("Project with key " + data.key + " already exists");
 		
-		ProjectCreationData projectData = new ProjectCreationData.Builder()
-				.withName(data.name)
-				.withKey(data.key)
-				.withType(data.projectTypeKey)
-				.withProjectTemplateKey(data.projectTemplateKey)
-				.withDescription(data.description)
-				.withLead(lead)
-				.withAssigneeType(AssigneeTypes.PROJECT_LEAD)
-				.build();
-		
-	    Project newProject = ComponentAccessor.getProjectManager().createProject(
-	    		ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser(), 
-	    		projectData);
-	    
-	    response.idOfCreatedProject = newProject.getId();
-		return newProject;
+		return ProjectCreationWrapper.createBasicProject(data, response, lead);
 	}
 
 	private void associatePermissionScheme(ProjectData data, Project newProject) {

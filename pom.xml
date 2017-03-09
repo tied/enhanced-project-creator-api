@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>br.objective.jira</groupId>
     <artifactId>enhanced-project-creator-api</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>7.1.7.0-SNAPSHOT</version>
     <organization>
         <name>Objective</name>
         <url>http://www.objective.com.br/</url>
