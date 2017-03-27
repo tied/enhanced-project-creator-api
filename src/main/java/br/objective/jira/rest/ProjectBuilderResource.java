@@ -10,7 +10,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.atlassian.jira.bc.project.ProjectCreationData;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.IssueFieldConstants;
@@ -23,7 +22,6 @@ import com.atlassian.jira.issue.fields.config.manager.FieldConfigManager;
 import com.atlassian.jira.issue.fields.config.manager.FieldConfigSchemeManager;
 import com.atlassian.jira.issue.fields.layout.field.FieldConfigurationScheme;
 import com.atlassian.jira.issue.fields.screen.issuetype.IssueTypeScreenScheme;
-import com.atlassian.jira.project.AssigneeTypes;
 import com.atlassian.jira.project.Project;
 import com.atlassian.jira.scheme.Scheme;
 import com.atlassian.jira.user.ApplicationUser;
@@ -50,6 +48,11 @@ public class ProjectBuilderResource {
 	    
 	    final Project newProject;
 	    try {
+	    	Project projectByKey = getProjectByKey(data.key);
+	    	if (projectByKey != null) {
+	    		response.idOfCreatedProject = projectByKey.getId();
+	    		return response;
+	    	}
 	    	newProject = createBasicProject(data, response, lead);
 	    }catch(Exception e) {
 	    	return response.withError("Failed to created project", e);
@@ -92,10 +95,11 @@ public class ProjectBuilderResource {
 	}
 
 	private Project createBasicProject(ProjectData data, ProjectBuilderResponse response, ApplicationUser lead) {
-		if (ComponentAccessor.getProjectManager().getProjectByCurrentKey(data.key) != null) 
-			throw new IllegalArgumentException("Project with key " + data.key + " already exists");
-		
 		return ProjectCreationWrapper.createBasicProject(data, response, lead);
+	}
+
+	private Project getProjectByKey(String key) {
+		return ComponentAccessor.getProjectManager().getProjectByCurrentKey(key);
 	}
 
 	private void associatePermissionScheme(ProjectData data, Project newProject) {
