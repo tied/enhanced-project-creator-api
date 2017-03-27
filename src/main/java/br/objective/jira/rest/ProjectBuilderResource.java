@@ -48,8 +48,13 @@ public class ProjectBuilderResource {
 	    
 	    final Project newProject;
 	    try {
-			ensureProjectDoesnExist(data);
-	    	newProject = ProjectCreationWrapper.createBasicProject(data, response, lead);
+
+	    	Project projectByKey = getProjectByKey(data.key);
+	    	if (projectByKey != null) {
+	    		response.idOfCreatedProject = projectByKey.getId();
+	    		return response;
+	    	}
+	    	newProject = createBasicProject(data, response, lead);
 	    }catch(Exception e) {
 	    	return response.withError("Failed to created project", e);
 	    }
@@ -90,9 +95,12 @@ public class ProjectBuilderResource {
 	    return response;
 	}
 
-	private void ensureProjectDoesnExist(ProjectData data) {
-		if (ComponentAccessor.getProjectManager().getProjectByCurrentKey(data.key) != null) 
-			throw new IllegalArgumentException("Project with key " + data.key + " already exists");
+	private Project createBasicProject(ProjectData data, ProjectBuilderResponse response, ApplicationUser lead) {
+		return ProjectCreationWrapper.createBasicProject(data, response, lead);
+	}
+
+	private Project getProjectByKey(String key) {
+		return ComponentAccessor.getProjectManager().getProjectByCurrentKey(key);
 	}
 
 	private void associatePermissionScheme(ProjectData data, Project newProject) {
