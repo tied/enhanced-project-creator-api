@@ -2,6 +2,7 @@ package br.objective.jira.rest;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -10,6 +11,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.atlassian.jira.bc.projectroles.ProjectRoleService;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.CustomFieldManager;
 import com.atlassian.jira.issue.IssueFieldConstants;
@@ -24,7 +26,12 @@ import com.atlassian.jira.issue.fields.layout.field.FieldConfigurationScheme;
 import com.atlassian.jira.issue.fields.screen.issuetype.IssueTypeScreenScheme;
 import com.atlassian.jira.project.Project;
 import com.atlassian.jira.scheme.Scheme;
+import com.atlassian.jira.security.roles.ProjectRole;
+import com.atlassian.jira.security.roles.ProjectRoleManager;
+import com.atlassian.jira.security.roles.actor.AbstractRoleActor;
 import com.atlassian.jira.user.ApplicationUser;
+import com.atlassian.jira.util.ErrorCollection;
+import com.atlassian.jira.util.SimpleErrorCollection;
 
 @Path("/project")
 public class ProjectBuilderResource {
@@ -81,6 +88,9 @@ public class ProjectBuilderResource {
 		    	    	
 		    currentAction = "associating CustomFields";
 		    associateCustomFields(data, newProject);
+		    
+		    currentAction = "associating users in roles";
+		    associateUsersInRoles(data, newProject);
 	    }
 	    catch(Exception e) {
 	    	response.withError("An error ocurred when " + currentAction, e);
@@ -93,6 +103,27 @@ public class ProjectBuilderResource {
 	    	}
 	    }
 	    return response;
+	}
+
+	private void associateUsersInRoles(ProjectData data, Project newProject) {
+		ProjectRoleManager roleManager = ComponentAccessor.getComponentOfType(ProjectRoleManager.class);
+		ProjectRoleService roleService = ComponentAccessor.getComponentOfType(ProjectRoleService.class);
+		
+		StringBuffer errors = new StringBuffer();
+		for (Entry<String, List<String>> projectRole : data.userInRoles.entrySet()) {
+			ProjectRole aRole = roleManager.getProjectRole(projectRole.getKey());
+			if (aRole == null) {
+				errors.append("Project role " + projectRole.getKey() + " not found\n");
+				continue;
+			}
+			ErrorCollection errorCollection = new SimpleErrorCollection();
+			roleService.addActorsToProjectRole(projectRole.getValue(), aRole, newProject, AbstractRoleActor.USER_ROLE_ACTOR_TYPE, errorCollection);
+			
+			if (errorCollection.hasAnyErrors()) 
+				for (String errorMessage : errorCollection.getErrorMessages()) 
+					errors.append(errorMessage+"\n");
+				
+		}
 	}
 
 	private Project createBasicProject(ProjectData data, ProjectBuilderResponse response, ApplicationUser lead) {
