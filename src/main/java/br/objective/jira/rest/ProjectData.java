@@ -1,5 +1,8 @@
 package br.objective.jira.rest;
 
+import java.util.List;
+import java.util.Map;
+
 public class ProjectData {
 	public String name;
 	public String key;
@@ -14,4 +17,5 @@ public class ProjectData {
 	public Long fieldConfigurationScheme;
 	public Long issueTypeScheme;
 	public Long [] customFields;
+	public Map<String, List<String>> userInRoles;
 }
