@@ -15,6 +15,12 @@
 	<packaging>atlassian-plugin</packaging>
 	<dependencies>
 		<dependency>
+			<groupId>jta</groupId>
+			<artifactId>jta</artifactId>
+			<version>1.0.1b</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.atlassian.jira</groupId>
 			<artifactId>jira-api</artifactId>
 			<version>${jira.version}</version>
@@ -243,17 +249,6 @@
 				<checksumPolicy>warn</checksumPolicy>
 			</releases>
 		</repository>
-		<repository>
-			<id>atlassian-plugin-sdk</id>
-			<url>file://${env.ATLAS_HOME}/repository</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-		</repository>
 	</repositories>
 
 	<pluginRepositories>
@@ -267,17 +262,6 @@
 			<snapshots>
 				<updatePolicy>never</updatePolicy>
 				<checksumPolicy>warn</checksumPolicy>
-			</snapshots>
-		</pluginRepository>
-		<pluginRepository>
-			<id>atlassian-plugin-sdk</id>
-			<url>file://${env.ATLAS_HOME}/repository</url>
-			<releases>
-				<enabled>true</enabled>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
