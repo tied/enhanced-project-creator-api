@@ -15,22 +15,10 @@
 	<packaging>atlassian-plugin</packaging>
 	<dependencies>
 		<dependency>
-			<groupId>jta</groupId>
-			<artifactId>jta</artifactId>
-			<version>1.0.1b</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.atlassian.jira</groupId>
 			<artifactId>jira-api</artifactId>
 			<version>${jira.version}</version>
 			<scope>provided</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>jta</groupId>
-					<artifactId>jta</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<!-- Add dependency on jira-core if you want access to JIRA implementation 
 			classes as well as the sanctioned API. -->
