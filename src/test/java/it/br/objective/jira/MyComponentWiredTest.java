@@ -23,6 +23,6 @@ public class MyComponentWiredTest
     @Test
     public void testMyName()
     {
-        assertEquals("names do not match!", "myComponent:" + applicationProperties.getDisplayName(),myPluginComponent.getName());
+        assertEquals("names do not match!", "enhancedProjectBuilder:" + applicationProperties.getDisplayName(),myPluginComponent.getName());
     }
 }
