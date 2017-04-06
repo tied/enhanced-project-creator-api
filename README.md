@@ -34,3 +34,11 @@ Expected payload:
 
 ### List users: /rest/projectbuilder/1.0/users
 Returns the list of all jira users. Used to allow external systems to create user pickers.
+
+## Development
+
+To debug the plugin, run:
+
+```
+atlas-run
+```
