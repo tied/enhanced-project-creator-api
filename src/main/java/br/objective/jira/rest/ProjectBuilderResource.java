@@ -1,6 +1,8 @@
 package br.objective.jira.rest;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -56,9 +58,6 @@ public class ProjectBuilderResource {
 		logger.debug("Request to create new project received " + data);
 		
 		ProjectBuilderResponse response = new ProjectBuilderResponse();
-	    ApplicationUser lead = ComponentAccessor.getUserManager().getUserByKey(data.lead);
-	    if (lead == null) 
-	    	return response.withError("Lead id " + data.lead + " not found.");
 	    
 	    final Project newProject;
 	    try {
@@ -68,6 +67,10 @@ public class ProjectBuilderResource {
 	    		response.idOfCreatedProject = projectByKey.getId();
 	    		return response;
 	    	}
+		    ApplicationUser lead = ComponentAccessor.getUserManager().getUserByKey(data.lead);
+		    if (lead == null) 
+		    	return response.withError("Lead id " + data.lead + " not found.");
+
 	    	newProject = createBasicProject(data, response, lead);
 	    }catch(Exception e) {
 	    	return response.withError("Failed to created project", e);
@@ -75,9 +78,6 @@ public class ProjectBuilderResource {
 	
 	    String currentAction = "";
 	    try {
-		    currentAction = "associating IssueTypeScheme";
-		    associateIssueTypeScheme(data, newProject);
-		    
 	    	currentAction = "associating WorkflowScheme";
 	    	associateWorkflowScheme(data, newProject);
 	    	
@@ -93,11 +93,14 @@ public class ProjectBuilderResource {
 	    	currentAction = "associating PermissionScheme"; 
 		    associatePermissionScheme(data, newProject);
 		    	    	
+		    currentAction = "associating users in roles";
+		    response.addWarnings(associateUsersInRoles(data, newProject));
+		    
 		    currentAction = "associating CustomFields";
 		    associateCustomFields(data, newProject);
 		    
-		    currentAction = "associating users in roles";
-		    associateUsersInRoles(data, newProject);
+		    currentAction = "associating IssueTypeScheme";
+		    associateIssueTypeScheme(data, newProject);		    
 	    }
 	    catch(Exception e) {
 	    	response.withError("An error ocurred when " + currentAction, e);
@@ -112,25 +115,34 @@ public class ProjectBuilderResource {
 	    return response;
 	}
 
-	private void associateUsersInRoles(ProjectData data, Project newProject) {
-		ProjectRoleManager roleManager = ComponentAccessor.getComponentOfType(ProjectRoleManager.class);
-		ProjectRoleService roleService = ComponentAccessor.getComponentOfType(ProjectRoleService.class);
+	private List<String> associateUsersInRoles(ProjectData data, Project newProject) {
+		final ProjectRoleManager roleManager = ComponentAccessor.getComponentOfType(ProjectRoleManager.class);
+		final ProjectRoleService roleService = ComponentAccessor.getComponentOfType(ProjectRoleService.class);
 		
-		StringBuffer errors = new StringBuffer();
+		final List<String> warnings = new LinkedList<String>();
 		for (Entry<String, List<String>> projectRole : data.userInRoles.entrySet()) {
 			ProjectRole aRole = roleManager.getProjectRole(projectRole.getKey());
 			if (aRole == null) {
-				errors.append("Project role " + projectRole.getKey() + " not found\n");
+				warnings.add("Project role " + projectRole.getKey() + " not found\n");
 				continue;
+			}
+			Iterator<String> it = projectRole.getValue().iterator();
+			while(it.hasNext()) {
+				String user = it.next();
+				if (ComponentAccessor.getUserManager().getUserByKey(user)==null) {
+					warnings.add("User " + user + " was not found, therefore it was not added to the project");
+					it.remove();
+				}
 			}
 			ErrorCollection errorCollection = new SimpleErrorCollection();
 			roleService.addActorsToProjectRole(projectRole.getValue(), aRole, newProject, AbstractRoleActor.USER_ROLE_ACTOR_TYPE, errorCollection);
 			
 			if (errorCollection.hasAnyErrors()) 
 				for (String errorMessage : errorCollection.getErrorMessages()) 
-					errors.append(errorMessage+"\n");
+					warnings.add(errorMessage+"\n");
 				
 		}
+		return warnings;
 	}
 
 	private Project createBasicProject(ProjectData data, ProjectBuilderResponse response, ApplicationUser lead) {
@@ -185,7 +197,8 @@ public class ProjectBuilderResource {
             cfSchemeBuilder.setConfigs(configs);
             cfConfigScheme = cfSchemeBuilder.toFieldConfigScheme();
 
-            List<Long> projectIdList = fieldConfigScheme.getAssociatedProjectIds();
+            LinkedList<Long> projectIdList = new LinkedList<Long>();
+            projectIdList.addAll(fieldConfigScheme.getAssociatedProjectIds());
             projectIdList.add(newProject.getId());
 
             List<JiraContextNode> contexts = CustomFieldUtils.buildJiraIssueContexts(false,
@@ -205,35 +218,6 @@ public class ProjectBuilderResource {
             if (fieldConfigScheme.getId().equals(schemeId))
             	return fieldConfigScheme;
 		
-		return null;
-	}
-
-	private void associateIssueTypeScheme(ProjectData data, Project newProject) {
-		Long issueTypeSchemeId = data.issueTypeScheme;
-		if (issueTypeSchemeId == null)
-			return;
-		
-		FieldConfigScheme issueTypeScheme = findIssueTypeSchemeGivenId(issueTypeSchemeId);
-		if (issueTypeScheme == null)
-			throw new IllegalArgumentException("IssueTypeScheme id " + issueTypeSchemeId + " not found.");
-		
-	    List<JiraContextNode> jiraIssueContexts = CustomFieldUtils.buildJiraIssueContexts(true, 
-	    		new Long[]{newProject.getId()}, 
-	    		ComponentAccessor.getProjectManager());
-	    
-	    FieldConfigSchemeManager fieldConfigSchemeManager = ComponentAccessor.getFieldConfigSchemeManager();
-	    fieldConfigSchemeManager.updateFieldConfigScheme(issueTypeScheme,
-	    		jiraIssueContexts,
-	    		ComponentAccessor.getFieldManager().getConfigurableField(IssueFieldConstants.ISSUE_TYPE));
-	}
-
-	private FieldConfigScheme findIssueTypeSchemeGivenId(Long issueTypeSchemeId) {
-		List<FieldConfigScheme> allSchemes = ComponentAccessor.getIssueTypeSchemeManager().getAllSchemes();
-		
-		for (FieldConfigScheme aScheme : allSchemes) {
-			if (aScheme.getId().equals(issueTypeSchemeId)) 
-				return aScheme;
-		}
 		return null;
 	}
 
@@ -278,4 +262,36 @@ public class ProjectBuilderResource {
 	    
 	    ComponentAccessor.getIssueTypeScreenSchemeManager().addSchemeAssociation(newProject, issueTypeScreenScheme);
 	}
+	
+	private void associateIssueTypeScheme(ProjectData data, Project newProject) {
+		Long issueTypeSchemeId = data.issueTypeScheme;
+		if (issueTypeSchemeId == null)
+			return;
+		
+		FieldConfigScheme issueTypeScheme = findIssueTypeSchemeGivenId(issueTypeSchemeId);
+		if (issueTypeScheme == null)
+			throw new IllegalArgumentException("IssueTypeScheme id " + issueTypeSchemeId + " not found.");
+		
+		LinkedList<Long> projects = new LinkedList<Long>(issueTypeScheme.getAssociatedProjectIds());
+		projects.add(newProject.getId());
+		
+	    List<JiraContextNode> jiraIssueContexts = CustomFieldUtils.buildJiraIssueContexts(false, 
+	    		projects.toArray(new Long[0]), 
+	    		ComponentAccessor.getProjectManager());
+	    
+	    FieldConfigSchemeManager fieldConfigSchemeManager = ComponentAccessor.getFieldConfigSchemeManager();
+	    fieldConfigSchemeManager.updateFieldConfigScheme(issueTypeScheme,
+	    		jiraIssueContexts,
+	    		ComponentAccessor.getFieldManager().getConfigurableField(IssueFieldConstants.ISSUE_TYPE));
+	}
+
+	private FieldConfigScheme findIssueTypeSchemeGivenId(Long issueTypeSchemeId) {
+		List<FieldConfigScheme> allSchemes = ComponentAccessor.getIssueTypeSchemeManager().getAllSchemes();
+		
+		for (FieldConfigScheme aScheme : allSchemes) {
+			if (aScheme.getId().equals(issueTypeSchemeId)) 
+				return aScheme;
+		}
+		return null;
+	}	
 }
