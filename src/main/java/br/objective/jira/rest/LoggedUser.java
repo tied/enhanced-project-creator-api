@@ -5,6 +5,6 @@ import com.atlassian.jira.user.ApplicationUser;
 
 public class LoggedUser {
 	public static ApplicationUser get() {
-		return ComponentAccessor.getJiraAuthenticationContext().getUser();
+		return ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser();
 	}
 }
