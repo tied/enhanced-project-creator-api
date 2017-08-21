@@ -35,6 +35,11 @@ Expected payload:
 ### List users: /rest/projectbuilder/1.0/users
 Returns the list of all jira users. Used to allow external systems to create user pickers.
 
+You may pass a query parameter to search filter results:
+```
+/res/projectbuild/1.0/users?q=name
+```
+
 ## Development
 
 To debug the plugin, run:
@@ -42,3 +47,12 @@ To debug the plugin, run:
 ```
 atlas-run
 ```
+-or-
+```
+mvn clean package
+mvn jira:debug
+```
+
+And attach the debugger from your IDE to localhost:5005
+
+This project is configured with QuickReload, so you may run `mvn package` from a second terminal and it will update loaded classes.
