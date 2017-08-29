@@ -38,6 +38,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-all</artifactId>
+			<version>1.3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.atlassian.plugin</groupId>
 			<artifactId>atlassian-spring-scanner-annotation</artifactId>
 			<version>${atlassian.spring.scanner.version}</version>
@@ -132,6 +138,7 @@
 				<configuration>
 					<productVersion>${jira.version}</productVersion>
 					<productDataVersion>${jira.version}</productDataVersion>
+					<productDataPath>${basedir}/src/test/resources/generated-test-resources.zip</productDataPath>
 					<!-- Uncomment to install TestKit backdoor in JIRA. -->
 					<!-- <pluginArtifacts> <pluginArtifact> <groupId>com.atlassian.jira.tests</groupId> 
 						<artifactId>jira-testkit-plugin</artifactId> <version>${testkit.version}</version> 
