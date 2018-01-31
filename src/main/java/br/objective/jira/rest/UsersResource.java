@@ -42,7 +42,7 @@ public class UsersResource {
 	@Path("{username}")
 	public Response getUserRoles(@PathParam("username") String username) {
 		ProjectRoleManager roleManager = ComponentAccessor.getComponentOfType(ProjectRoleManager.class);
-		ApplicationUser user = ComponentAccessor.getUserManager().getUserByKey(username);
+		ApplicationUser user = ComponentAccessor.getUserManager().getUserByName(username);
 		if (user == null) 
 			return Response.status(Response.Status.NOT_FOUND).build();
 		
