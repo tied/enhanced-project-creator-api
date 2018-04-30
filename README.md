@@ -1,6 +1,7 @@
 # Enhanced Project Builder
 
 This is a jira plugin that exposes a REST api to create a new project with all required schemes and custom field associations.
+This plugin also has some functions to use in Workflow validators, conditions and post-functions.
 
 ## Endpoints
 
@@ -39,6 +40,16 @@ You may pass a query parameter to search filter results:
 ```
 /res/projectbuild/1.0/users?q=name
 ```
+
+## Workflow scripts
+
+To use this plugin in the workflow scripts, you have to put this code:
+```
+import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
+@WithPlugin("br.objective.jira.enhanced-project-creator-api")e
+```
+After that, you can import the classes that you need.
+
 
 ## Development
 

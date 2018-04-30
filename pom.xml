@@ -143,6 +143,11 @@
 					<!-- <pluginArtifacts> <pluginArtifact> <groupId>com.atlassian.jira.tests</groupId> 
 						<artifactId>jira-testkit-plugin</artifactId> <version>${testkit.version}</version> 
 						</pluginArtifact> </pluginArtifacts> -->
+					<pluginArtifact>
+						<groupId>com.atlassian.labs.plugins</groupId>
+						<artifactId>quickreload</artifactId>
+						<version>${quick.reload.version}</version>
+					</pluginArtifact>
 					<enableQuickReload>true</enableQuickReload>
 					<enableFastdev>false</enableFastdev>
 					<!-- See here for an explanation of default instructions: -->
