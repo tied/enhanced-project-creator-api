@@ -35,36 +35,36 @@ class IssueTransitionValidator {
 
 	private static final Logger log = LoggerFactory.getLogger(IssueTransitionValidator.class);
 
-	public static void executeValidation(String transitionName, Issue issue, String messageBeforeError) throws Throwable {
+	public static void executeValidation(Issue issue, String transitionName, String messageBeforeError) throws Throwable {
 		try {
-			executeValidation(transitionName, issue);
+			executeValidation(issue, transitionName);
 		} catch (InvalidInputException e) {
 			throw new InvalidInputException(messageBeforeError +" "+ e.getMessage());
 		}
 	}
 
-	public static void executeValidation(String transitionName, Issue issue) throws Throwable {
+	public static void executeValidation(Issue issue, String transitionName) throws Throwable {
 		if (transitionName == null || "".equals(transitionName)) {
 			String error = "Error on validation: \"transitionName\" is required.";
 			log.error(error);
-			throw new InvalidInputException(error);
+			throw new IllegalArgumentException(error);
 		}
 
 		if (issue == null) {
 			String error = "Error on \""+ transitionName +"\" validation. The issue is required.";
 			log.error(error);
-			throw new InvalidInputException(error);
+			throw new IllegalArgumentException(error);
 		}
 
-		Optional<ActionDescriptor> actionOpt = getTransitionActionDescriptor(transitionName, issue);
+		Optional<ActionDescriptor> actionOpt = getTransitionActionDescriptor(issue, transitionName);
 		if (!actionOpt.isPresent()) {
 			String error = "Transition \""+ transitionName +"\" doesn't exist.";
 			log.error(error);
-			throw new InvalidInputException(error);
+			throw new IllegalArgumentException(error);
 		}
 		ActionDescriptor action = actionOpt.get();
 
-		if (!isValidTransition(LoggedUser.get(), issue, action))
+		if (!isValidTransition(issue, action, LoggedUser.get()))
 			throw new InvalidInputException("Transition \""+ transitionName +"\" isn't valid for the current state of the issue \""+ issue.getKey() +"\".");
 
 		if (action.getValidators().isEmpty())
@@ -72,38 +72,40 @@ class IssueTransitionValidator {
 
 		Workflow workflow = ComponentAccessor.getWorkflowManager().makeWorkflow(LoggedUser.get());
 		if (!(workflow instanceof AbstractWorkflow)) {
-			log.error("Ignoring validation of \""+ transitionName +"\" to the issue \""+ issue.getKey() +"\". Error: Workflow isn't instance of AbstractWorkflow.");
-			return;
+			String error = "Ignoring validation of \""+ transitionName +"\" to the issue \""+ issue.getKey() +"\". Error: Workflow isn't instance of AbstractWorkflow.";
+			log.error(error);
+			throw new ClassCastException(error);
 		}
 
 		try {
-			validate(action, (AbstractWorkflow) workflow, issue);
+			validate(issue, action, (AbstractWorkflow) workflow);
 		} catch (WorkflowValidationReflectionException e) {
-			log.error("Ignoring validation of \""+ transitionName +"\" to the issue \""+ issue.getKey() +"\". Error: " + e.getMessage());
-			return;
+			String error = "Ignoring validation of \""+ transitionName +"\" to the issue \""+ issue.getKey() +"\". Error: " + e.getMessage();
+			log.error(error);
+			throw new WorkflowValidationReflectionException(error, e);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private static void validate(ActionDescriptor action, AbstractWorkflow workflow, Issue issue) throws Throwable {
+	private static void validate(Issue issue, ActionDescriptor action, AbstractWorkflow workflow) throws Throwable {
 		WorkflowStore store = workflow.getConfiguration().getWorkflowStore();
 		WorkflowEntry entry = store.findEntry(issue.getWorkflowId());
 		PropertySet ps = store.getPropertySet(issue.getWorkflowId());
-		Map<Object, Object> transientVars = generateTransientVars(action, workflow, issue, store, entry);
+		Map<Object, Object> transientVars = generateTransientVars(issue, action, workflow, store, entry);
 
 		executeVerifyInputs(workflow, entry, action.getValidators(), Collections.unmodifiableMap(transientVars), ps);
 	}
 
-	private static Map<Object, Object> generateTransientVars(ActionDescriptor action, AbstractWorkflow workflow, Issue issue, WorkflowStore store, WorkflowEntry entry) throws FactoryException, StoreException {
+	private static Map<Object, Object> generateTransientVars(Issue issue, ActionDescriptor action, AbstractWorkflow workflow, WorkflowStore store, WorkflowEntry entry) throws FactoryException, StoreException {
 		Map<Object, Object> transientVars = new HashMap<>();
-		transientVars.put("context", getContext(workflow));
-		transientVars.put("entry", entry);
-		transientVars.put("store", store);
-		transientVars.put("configuration", workflow.getConfiguration());
-		transientVars.put("descriptor", workflow.getConfiguration().getWorkflow(entry.getWorkflowName()));
-		transientVars.put("actionId", action.getId());
-		transientVars.put("currentSteps", store.findCurrentSteps(issue.getWorkflowId()));
 		transientVars.put("issue", issue);
+		transientVars.put("actionId", action.getId());
+		transientVars.put("descriptor", workflow.getConfiguration().getWorkflow(entry.getWorkflowName()));
+		transientVars.put("context", getContext(workflow));
+		transientVars.put("configuration", workflow.getConfiguration());
+		transientVars.put("store", store);
+		transientVars.put("currentSteps", store.findCurrentSteps(issue.getWorkflowId()));
+		transientVars.put("entry", entry);
 		return transientVars;
 	}
 
