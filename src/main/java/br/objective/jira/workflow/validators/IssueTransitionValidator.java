@@ -2,6 +2,7 @@ package br.objective.jira.workflow.validators;
 
 import static br.objective.jira.workflow.utils.TransitionUtils.getTransitionActionDescriptor;
 import static br.objective.jira.workflow.utils.TransitionUtils.isValidTransition;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -44,7 +45,7 @@ class IssueTransitionValidator {
 	}
 
 	public static void executeValidation(Issue issue, String transitionName) throws Throwable {
-		if (transitionName == null || "".equals(transitionName)) {
+		if (isBlank(transitionName)) {
 			String error = "Error on validation: \"transitionName\" is required.";
 			log.error(error);
 			throw new IllegalArgumentException(error);
@@ -58,7 +59,7 @@ class IssueTransitionValidator {
 
 		Optional<ActionDescriptor> actionOpt = getTransitionActionDescriptor(issue, transitionName);
 		if (!actionOpt.isPresent()) {
-			String error = "Transition \""+ transitionName +"\" doesn't exist.";
+			String error = "Error on validation: Transition \""+ transitionName +"\" doesn't exist.";
 			log.error(error);
 			throw new IllegalArgumentException(error);
 		}
@@ -72,7 +73,7 @@ class IssueTransitionValidator {
 
 		Workflow workflow = ComponentAccessor.getWorkflowManager().makeWorkflow(LoggedUser.get());
 		if (!(workflow instanceof AbstractWorkflow)) {
-			String error = "Ignoring validation of \""+ transitionName +"\" to the issue \""+ issue.getKey() +"\". Error: Workflow isn't instance of AbstractWorkflow.";
+			String error = "Error on \""+ transitionName +"\" validation to the issue \""+ issue.getKey() +"\". Error: Workflow isn't instance of AbstractWorkflow.";
 			log.error(error);
 			throw new ClassCastException(error);
 		}
@@ -80,7 +81,7 @@ class IssueTransitionValidator {
 		try {
 			validate(issue, action, (AbstractWorkflow) workflow);
 		} catch (WorkflowValidationReflectionException e) {
-			String error = "Ignoring validation of \""+ transitionName +"\" to the issue \""+ issue.getKey() +"\". Error: " + e.getMessage();
+			String error = "Error on \""+ transitionName +"\" validation to the issue \""+ issue.getKey() +"\". Error: " + e.getMessage();
 			log.error(error);
 			throw new WorkflowValidationReflectionException(error, e);
 		}
