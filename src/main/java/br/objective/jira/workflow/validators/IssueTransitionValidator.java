@@ -2,7 +2,7 @@ package br.objective.jira.workflow.validators;
 
 import static br.objective.jira.workflow.utils.TransitionUtils.getTransitionActionDescriptor;
 import static br.objective.jira.workflow.utils.TransitionUtils.isValidTransition;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isBlank;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
