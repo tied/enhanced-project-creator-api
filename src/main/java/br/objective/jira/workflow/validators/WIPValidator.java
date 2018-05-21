@@ -16,11 +16,11 @@ class WIPValidator {
 
 	public static void validateWIP(Issue issue, int actionId, TaskboardConnection taskboard) throws InvalidInputException, IOException, JSONException {
 		if (issue == null)
-			throw new IllegalArgumentException("Issue is required.");
+			throw new IllegalArgumentException("Error on WIP validation: Issue is required.");
 
 		Optional<String> statusName = getNextStatusNameForAction(issue, actionId);
 		if (!statusName.isPresent())
-			throw new IllegalArgumentException("Invalid actionId");
+			throw new IllegalArgumentException("Error on WIP validation: \"actionId\" "+ actionId +" isn't valid.");
 
 		JSONObject json = taskboard.getWIPValidatorResponse(issue.getKey(), issue.getAssigneeUser().getUsername(), statusName.get());
 		if (json.getBoolean("isWipExceeded"))
