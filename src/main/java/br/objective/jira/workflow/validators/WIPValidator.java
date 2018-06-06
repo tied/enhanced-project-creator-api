@@ -14,7 +14,7 @@ import br.objective.taskboard.TaskboardConnection;
 
 class WIPValidator {
 
-	public static void validateWIP(Issue issue, int actionId, TaskboardConnection taskboard) throws InvalidInputException, IOException, JSONException {
+	public static void wip(Issue issue, int actionId, TaskboardConnection taskboard) throws InvalidInputException, IOException, JSONException {
 		if (issue == null)
 			throw new IllegalArgumentException("Error on WIP validation: Issue is required.");
 

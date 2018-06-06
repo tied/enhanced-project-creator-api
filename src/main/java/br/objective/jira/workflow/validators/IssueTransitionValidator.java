@@ -36,15 +36,15 @@ class IssueTransitionValidator {
 
 	private static final Logger log = LoggerFactory.getLogger(IssueTransitionValidator.class);
 
-	public static void executeValidation(Issue issue, String transitionName, String messageBeforeError) throws Throwable {
+	public static void executeValidators(Issue issue, String transitionName, String messageBeforeError) throws Throwable {
 		try {
-			executeValidation(issue, transitionName);
+			executeValidators(issue, transitionName);
 		} catch (InvalidInputException e) {
 			throw new InvalidInputException(messageBeforeError +" "+ e.getMessage());
 		}
 	}
 
-	public static void executeValidation(Issue issue, String transitionName) throws Throwable {
+	public static void executeValidators(Issue issue, String transitionName) throws Throwable {
 		if (isBlank(transitionName)) {
 			String error = "Error on validation: \"transitionName\" is required.";
 			log.error(error);

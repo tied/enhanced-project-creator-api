@@ -10,18 +10,18 @@ import br.objective.taskboard.TaskboardConnection;
 
 public class ValidatorsFacade {
 
-	public static void parentValidation(Issue subtask, String transitionName) throws Throwable {
+	public static void parentTransitionValidation(Issue subtask, String transitionName) throws Throwable {
 		if (subtask == null || subtask.getParentObject() == null)
 			throw new IllegalArgumentException("Error on parentValidation: the \"subtask\" and the \"parentIssue\" cannot be null.");
 		String errorMessage = "The parent issue ("+ subtask.getParentObject().getKey() +") would be transitioned as a result "+ subtask.getKey() +"'s transition, but the parent can't be transitioned:";
-		IssueTransitionValidator.executeValidation(subtask.getParentObject(), transitionName, errorMessage);
+		IssueTransitionValidator.executeValidators(subtask.getParentObject(), transitionName, errorMessage);
 	}
 
 	public static void assigneeAndWIPValidation(Issue issue, int actionId, String taskboardUser, String taskboardPassword, String taskboardEndpoint) throws InvalidInputException, IOException, JSONException {
-		AssigneeValidator.validateAssignee(issue);
+		AssigneeValidator.assigneeNotEmpty(issue);
 
 		TaskboardConnection taskboard = new TaskboardConnection(taskboardUser, taskboardPassword, taskboardEndpoint);
-		WIPValidator.validateWIP(issue, actionId, taskboard);
+		WIPValidator.wip(issue, actionId, taskboard);
 	}
 
 }

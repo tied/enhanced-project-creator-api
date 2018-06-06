@@ -12,7 +12,7 @@ if (ScriptUtils.isIssueOnTheSameStatusAsTransition(issue.getParentObject(), tran
     return;
 
 try {
-    ValidatorsFacade.parentValidation(issue, transitionName);
+    ValidatorsFacade.parentTransitionValidation(issue, transitionName);
 } catch (InvalidInputException e) {
     invalidInputException = e;
 } catch (Exception e) {

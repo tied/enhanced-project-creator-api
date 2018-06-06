@@ -8,7 +8,7 @@ import com.opensymphony.workflow.InvalidInputException;
 
 class AssigneeValidator {
 
-	public static void validateAssignee(Issue issue) throws InvalidInputException {
+	public static void assigneeNotEmpty(Issue issue) throws InvalidInputException {
 		if (issue == null)
 			throw new IllegalArgumentException("Issue is required.");
 
