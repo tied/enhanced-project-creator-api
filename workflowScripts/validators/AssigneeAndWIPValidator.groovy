@@ -1,3 +1,10 @@
+/**
+ * Properties:
+ * @string (required) "taskboard-user": Taskboard user - username.
+ * @string (required) "taskboard-password": Taskboard user - password.
+ * @string (required) "taskboard-endpoint": Taskboard URL.
+ */
+
 import com.atlassian.jira.workflow.ImmutableWorkflowDescriptor;
 
 import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
