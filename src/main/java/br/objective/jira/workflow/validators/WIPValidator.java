@@ -14,6 +14,14 @@ import br.objective.taskboard.TaskboardConnection;
 
 class WIPValidator {
 
+	public static void wip(Issue issue, int actionId, TaskboardConnection taskboard, String messageBeforeError) throws InvalidInputException, IOException, JSONException {
+		try {
+			wip(issue, actionId, taskboard);
+		} catch (InvalidInputException e) {
+			throw new InvalidInputException(messageBeforeError +" "+ e.getMessage());
+		}
+	}
+
 	public static void wip(Issue issue, int actionId, TaskboardConnection taskboard) throws InvalidInputException, IOException, JSONException {
 		if (issue == null)
 			throw new IllegalArgumentException("Error on WIP validation: Issue is required.");
@@ -22,7 +30,7 @@ class WIPValidator {
 		if (!statusName.isPresent())
 			throw new IllegalArgumentException("Error on WIP validation: \"actionId\" "+ actionId +" isn't valid.");
 
-		JSONObject json = taskboard.getWIPValidatorResponse(issue.getKey(), issue.getAssigneeUser().getUsername(), statusName.get());
+		JSONObject json = taskboard.getWIPValidatorResponse(issue.getKey(), statusName.get());
 		if (json.getBoolean("isWipExceeded"))
 			throw new InvalidInputException(json.getString("message"));
 	}

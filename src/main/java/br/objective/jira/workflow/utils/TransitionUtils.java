@@ -40,6 +40,14 @@ public class TransitionUtils {
 		return validationResult.isValid();
 	}
 
+	public static boolean isValidTransition(Issue issue, String transitionName, ApplicationUser user) {
+		Optional<ActionDescriptor> transitionActionDescriptor = getTransitionActionDescriptor(issue, transitionName);
+		if (!transitionActionDescriptor.isPresent())
+			return false;
+
+		return isValidTransition(issue, transitionActionDescriptor.get(), user);
+	}
+
 	public static Optional<String> getNextStatusNameForAction(Issue issue, int actionId) {
 		try {
 			String statusId = ComponentAccessor.getWorkflowManager().getNextStatusIdForAction(issue, actionId);
@@ -50,6 +58,18 @@ public class TransitionUtils {
 			return Optional.empty();
 		}
 	}
+
+	public static boolean isIssueOnTheSameStatusAsTransition(Issue issue, String transitionName) {
+		Optional<ActionDescriptor> transition = getTransitionActionDescriptor(issue, transitionName);
+		if (!transition.isPresent())
+			return false;
+		Optional<String> transitionStatusName = getNextStatusNameForAction(issue, transition.get().getId());
+		if (!transitionStatusName.isPresent())
+			return false;
+
+		return issue.getStatus().getName().equals(transitionStatusName.get());
+	}
+
 
 	public static void doTransition(Issue issue, String transitionName) {
 		ApplicationUser loggedUser = LoggedUser.get();

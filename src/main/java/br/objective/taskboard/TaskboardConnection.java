@@ -36,9 +36,9 @@ public class TaskboardConnection {
 		this.endpoint = endpoint;
 	}
 
-	public JSONObject getWIPValidatorResponse(String issueKey, String username, String statusName) throws IOException, JSONException {
+	public JSONObject getWIPValidatorResponse(String issueKey, String statusName) throws IOException, JSONException {
 		String statusNameEncoded = URLEncoder.encode(statusName, UTF_8.toString());
-		String url = endpoint +"/api/wip-validator?issue="+ issueKey +"&user="+ username +"&status="+ statusNameEncoded;
+		String url = endpoint +"/api/wip-validator?issue="+ issueKey +"&status="+ statusNameEncoded;
 		String response = fetch(new URL(url));
 		return new JSONObject(response);
 	}

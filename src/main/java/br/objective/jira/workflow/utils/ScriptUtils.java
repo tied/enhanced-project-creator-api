@@ -1,12 +1,9 @@
 package br.objective.jira.workflow.utils;
 
-import static br.objective.jira.workflow.utils.TransitionUtils.getNextStatusNameForAction;
-import static br.objective.jira.workflow.utils.TransitionUtils.getTransitionActionDescriptor;
-
-import java.util.Optional;
-
-import com.atlassian.jira.issue.Issue;
+import com.atlassian.jira.user.ApplicationUser;
 import com.opensymphony.workflow.loader.ActionDescriptor;
+
+import br.objective.jira.rest.LoggedUser;
 
 public class ScriptUtils {
 
@@ -19,15 +16,8 @@ public class ScriptUtils {
 		return e.getMessage() == null ? e.toString() : e.getMessage();
 	}
 
-	public static boolean isIssueOnTheSameStatusAsTransition(Issue issue, String transitionName) {
-		Optional<ActionDescriptor> transition = getTransitionActionDescriptor(issue, transitionName);
-		if (!transition.isPresent())
-			return false;
-		Optional<String> transitionStatusName = getNextStatusNameForAction(issue, transition.get().getId());
-		if (!transitionStatusName.isPresent())
-			return false;
-
-		return issue.getStatus().getName().equals(transitionStatusName.get());
+	public static ApplicationUser getLoggedUser() {
+		return LoggedUser.get();
 	}
 
 }

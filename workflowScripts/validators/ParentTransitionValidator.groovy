@@ -8,7 +8,7 @@ import br.objective.jira.workflow.utils.ScriptUtils;
 
 String transitionName = "Transition Name";
 
-if (ScriptUtils.isIssueOnTheSameStatusAsTransition(issue.getParentObject(), transitionName))
+if (TransitionUtils.isIssueOnTheSameStatusAsTransition(issue.getParentObject(), transitionName))
     return;
 
 try {
