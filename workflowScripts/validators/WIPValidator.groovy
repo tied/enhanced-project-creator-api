@@ -22,7 +22,7 @@ String password = ScriptUtils.getAttributeValueOrNull(wdes.getAction(actionId), 
 String endpoint = ScriptUtils.getAttributeValueOrNull(wdes.getAction(actionId), "taskboard-endpoint");
 
 try {
-    ValidatorsFacade.assigneeAndWIPValidation(issue, actionId, user, password, endpoint);
+    ValidatorsFacade.wipValidation(issue, actionId, user, password, endpoint);
 } catch (InvalidInputException e) {
     invalidInputException = e;
 } catch (Exception e) {
