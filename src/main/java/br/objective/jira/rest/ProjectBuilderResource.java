@@ -111,6 +111,7 @@ public class ProjectBuilderResource {
 	    		actionLog.removeLast();
 	    		response.withError("Actions that have been performed succesfully" + StringUtils.join(actionLog,","));
 	    		response.idOfCreatedProject = newProject.getId();
+	    		removeProject(data.key);
 	    	}catch(Exception e1) {
 	    		return response.withError("Project was created, but with errors. Attempt to remove project failed.", e);
 	    	}
@@ -231,6 +232,8 @@ public class ProjectBuilderResource {
 				throw new IllegalArgumentException("FieldConfigurationSchema with id " + data.fieldConfigurationScheme + " not found.");
 			
 			ComponentAccessor.getFieldLayoutManager().addSchemeAssociation(newProject, data.fieldConfigurationScheme);
+		} else {
+			throw new IllegalArgumentException("No FieldConfigurationSchema provided");
 		}
 	}
 
@@ -297,5 +300,16 @@ public class ProjectBuilderResource {
 				return aScheme;
 		}
 		return null;
-	}	
+	}
+
+	private void removeProject(String projectKey) {
+		if (projectKey == null || projectKey.trim().isEmpty()) {
+			throw new RuntimeException("Unable to remove: No project key provided");
+		}
+		Project projectToRemove = getProjectByKey(projectKey);
+		if (projectToRemove == null) {
+			return;
+		}
+		ComponentAccessor.getProjectManager().removeProject(projectToRemove);
+	}
 }
