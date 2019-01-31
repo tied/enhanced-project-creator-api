@@ -1,6 +1,6 @@
 import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
 
-@WithPlugin("br.objective.jira.enhanced-project-creator-api")
+@WithPlugin("br.objective.jira.enhanced-project-creator-api")_
 
 import br.objective.jira.workflow.postFunctions.PostFunctionsFacade;
 import br.objective.jira.workflow.utils.ScriptUtils;

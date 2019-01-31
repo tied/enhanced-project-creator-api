@@ -1,7 +1,7 @@
 import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
 import com.opensymphony.workflow.InvalidInputException;
 
-@WithPlugin("br.objective.jira.enhanced-project-creator-api")
+@WithPlugin("br.objective.jira.enhanced-project-creator-api")_
 
 import br.objective.jira.workflow.validators.ValidatorsFacade;
 import br.objective.jira.workflow.utils.ScriptUtils;

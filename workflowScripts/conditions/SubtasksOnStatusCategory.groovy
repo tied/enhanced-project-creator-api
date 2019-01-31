@@ -1,7 +1,7 @@
 import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
 import com.atlassian.jira.issue.status.category.StatusCategory;
 
-@WithPlugin("br.objective.jira.enhanced-project-creator-api")
+@WithPlugin("br.objective.jira.enhanced-project-creator-api")_
 
 import br.objective.jira.workflow.conditions.ConditionsFacade;
 import br.objective.jira.workflow.utils.ScriptUtils;
