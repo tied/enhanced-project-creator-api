@@ -46,7 +46,7 @@ You may pass a query parameter to search filter results:
 To use this plugin in the workflow scripts, you have to put this code:
 ```
 import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
-@WithPlugin("br.objective.jira.enhanced-project-creator-api")e
+@WithPlugin("br.objective.jira.enhanced-project-creator-api")_
 ```
 After that, you can import the classes that you need.
 
