@@ -1,10 +1,9 @@
 package br.objective.jira.rest;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -33,12 +32,12 @@ import com.atlassian.jira.issue.fields.screen.issuetype.IssueTypeScreenScheme;
 import com.atlassian.jira.notification.NotificationSchemeManager;
 import com.atlassian.jira.project.Project;
 import com.atlassian.jira.scheme.Scheme;
-import com.atlassian.jira.security.roles.ProjectRole;
-import com.atlassian.jira.security.roles.ProjectRoleManager;
 import com.atlassian.jira.security.roles.actor.AbstractRoleActor;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.ErrorCollection;
 import com.atlassian.jira.util.SimpleErrorCollection;
+
+import br.objective.jira.rest.RoleActorValidator.RoleActorsValidatorResult;
 
 @Path("/project")
 public class ProjectBuilderResource {
@@ -97,7 +96,10 @@ public class ProjectBuilderResource {
 		    	    	
 		    actionLog.add("associating users in roles");
 		    response.addWarnings(associateUsersInRoles(data, newProject));
-		    
+
+			actionLog.add("associating groups in roles");
+			response.addWarnings(associateGroupsInRoles(data, newProject));
+
 		    actionLog.add("associating CustomFields");
 		    associateCustomFields(data, newProject);
 		    
@@ -119,33 +121,29 @@ public class ProjectBuilderResource {
 	    return response;
 	}
 
-	private List<String> associateUsersInRoles(ProjectData data, Project newProject) {
-		final ProjectRoleManager roleManager = ComponentAccessor.getComponentOfType(ProjectRoleManager.class);
-		final ProjectRoleService roleService = ComponentAccessor.getComponentOfType(ProjectRoleService.class);
-		
-		final List<String> warnings = new LinkedList<String>();
-		for (Entry<String, List<String>> projectRole : data.userInRoles.entrySet()) {
-			ProjectRole aRole = roleManager.getProjectRole(projectRole.getKey());
-			if (aRole == null) {
-				warnings.add("Project role " + projectRole.getKey() + " not found\n");
-				continue;
-			}
-			Iterator<String> it = projectRole.getValue().iterator();
-			while(it.hasNext()) {
-				String user = it.next();
-				if (ComponentAccessor.getUserManager().getUserByKey(user)==null) {
-					warnings.add("User " + user + " was not found, therefore it was not added to the project");
-					it.remove();
-				}
-			}
+	private List<String> associateUsersInRoles(ProjectData data, Project project) {
+		RoleActorsValidatorResult rolesAndUsersValidatorResult = RoleActorValidator.validateRolesAndUsers(data);
+		return addActorsToRoles(project, rolesAndUsersValidatorResult, AbstractRoleActor.USER_ROLE_ACTOR_TYPE);
+	}
+
+	private List<String> associateGroupsInRoles(ProjectData data, Project project) {
+		RoleActorsValidatorResult rolesAndGroupsValidatorResult = RoleActorValidator.validateRolesAndGroups(data);
+		return addActorsToRoles(project, rolesAndGroupsValidatorResult, AbstractRoleActor.GROUP_ROLE_ACTOR_TYPE);
+	}
+
+	private List<String> addActorsToRoles(Project project, RoleActorsValidatorResult validRolesAndActors, String actorType) {
+		ProjectRoleService roleService = ComponentAccessor.getComponentOfType(ProjectRoleService.class);
+
+		List<String> warnings = new ArrayList<>(validRolesAndActors.warnings);
+
+		validRolesAndActors.validRoleActors.forEach(roleActors -> {
 			ErrorCollection errorCollection = new SimpleErrorCollection();
-			roleService.addActorsToProjectRole(projectRole.getValue(), aRole, newProject, AbstractRoleActor.USER_ROLE_ACTOR_TYPE, errorCollection);
-			
-			if (errorCollection.hasAnyErrors()) 
-				for (String errorMessage : errorCollection.getErrorMessages()) 
-					warnings.add(errorMessage+"\n");
-				
-		}
+			roleService.addActorsToProjectRole(roleActors.actors, roleActors.role, project, actorType, errorCollection);
+
+			if (errorCollection.hasAnyErrors())
+				warnings.addAll(errorCollection.getErrorMessages());
+		});
+
 		return warnings;
 	}
 
