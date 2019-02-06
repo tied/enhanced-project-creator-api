@@ -19,6 +19,10 @@ Expected payload:
         "Role Name 1"     : ["user1", "user2"],
         "Role Name 2"     : ["user3", "user4"]
     },
+    "groupInRoles"              : { // Optional
+        "Role Name 2"     : ["group1", "group2"],
+        "Role Name 3"     : ["group3", "group4"]
+    },
     "issueTypeScheme"          : "id of issue type scheme",
     "workflowScheme"           : "id of workflow scheme",
     "issueTypeScreenScheme"    : "id of issue type screen scheme",
