@@ -42,7 +42,33 @@ Returns the list of all jira users. Used to allow external systems to create use
 
 You may pass a query parameter to search filter results:
 ```
-/res/projectbuild/1.0/users?q=name
+/rest/projectbuild/1.0/users?q=name
+```
+
+### Issue fields required in transitions : /rest/projectbuilder/1.0/issue/{issueKey}/fields-required-in-transitions
+Returns the list of all fields required in transitions according to an issue key and a list of transition IDs.
+
+```
+/rest/projectbuild/1.0/issue/ISSUE-1/fields-required-in-transitions
+```
+Payload:
+```
+[ 11, 21 ]
+```
+Response:
+```
+[
+    {
+        "id": 11,
+        "requiredFields": [
+            "fixVersions"
+        ],
+    },
+    {
+        "id": 21,
+        "requiredFields": [],
+    }
+]
 ```
 
 ## Workflow scripts
