@@ -84,8 +84,7 @@ public class JiraTestUtils {
                     JSONObject request = new JSONObject()
                             .put("name", role)
                             .put("description", RoleNameGenerator.description(i));
-                    String response = resource.post(String.class, request.toString());
-//                    System.out.println(response);
+                    resource.post(String.class, request.toString());
                 }
             } catch (ClientWebException ex) {
                 throw new RuntimeException(ex.getResponse().getEntity(String.class), ex);
@@ -129,8 +128,7 @@ public class JiraTestUtils {
                             .put("holder", new JSONObject()
                                     .put("type", "projectRole")
                                     .put("parameter", role));
-                    String result = resource.post(String.class, request.toString());
-//                    System.out.println(result);
+                    resource.post(String.class, request.toString());
                 }
             }
         } catch (ClientWebException ex) {
@@ -203,12 +201,35 @@ public class JiraTestUtils {
                         );
 
                 Resource resource = jsonResource("http://localhost:2990/jira/rest/api/2/project/" + project + "/role/" + role);
-                String response = resource.put(String.class, request.toString());
-//                System.out.println(response);
+                resource.put(String.class, request.toString());
             }
         } catch (ClientWebException ex) {
             throw new RuntimeException(ex.getMessage() + ": " + ex.getResponse().getEntity(String.class), ex);
         } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static String createIssue() {
+        Resource resource = jsonResource("http://localhost:2990/jira/rest/api/2/issue");
+        try {
+            JSONObject project = new JSONObject()
+                    .put("id", projectNameIdMap().get(ProjectNameGenerator.name(0)));
+            JSONObject issueType = allIssueTypes()
+                    .findFirst().orElse(null);
+            JSONObject reporter = new JSONObject()
+                    .put("name", "admin");
+            JSONObject fields = new JSONObject()
+                    .put("project", project)
+                    .put("summary", "Summary")
+                    .put("issuetype", issueType)
+                    .put("reporter", reporter);
+            JSONObject request = new JSONObject()
+                    .put("fields", fields);
+
+            String response = resource.post(String.class, request.toString());
+            return new JSONObject(response).getString("key");
+        } catch (ClientWebException | JSONException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -226,8 +247,7 @@ public class JiraTestUtils {
                         .put("password", password)
                         .put("emailAddress", email)
                         .put("displayName", displayName);
-                String response = resource.post(String.class, request.toString());
-//                System.out.println(response);
+                resource.post(String.class, request.toString());
             } catch (ClientWebException | JSONException ex) {
                 throw new RuntimeException(ex);
             }
@@ -247,8 +267,7 @@ public class JiraTestUtils {
                         .put("password", password)
                         .put("emailAddress", email)
                         .put("displayName", displayName);
-                String response = resource.post(String.class, request.toString());
-//                System.out.println(response);
+                resource.post(String.class, request.toString());
             } catch (ClientWebException | JSONException ex) {
                 throw new RuntimeException(ex);
             }
@@ -270,8 +289,7 @@ public class JiraTestUtils {
                         .put("name", ProjectNameGenerator.name(i))
                         .put("projectTypeKey", "business")
                         .put("lead", "admin");
-                String response = resource.post(String.class, request.toString());
-//                System.out.println(response);
+                resource.post(String.class, request.toString());
             } catch (ClientWebException ex) {
                 throw new RuntimeException(ex.getResponse().getEntity(String.class), ex);
             } catch (JSONException ex) {
@@ -322,6 +340,17 @@ public class JiraTestUtils {
     private static Map<String, String> roleNameIdMap() {
         return allRoles()
                 .collect(toMap(obj -> (String) obj.opt("name"), obj -> String.valueOf(obj.opt("id"))));
+    }
+
+    private static Stream<JSONObject> allIssueTypes() {
+        Resource resource = jsonResource("http://localhost:2990/jira/rest/api/2/issuetype");
+        JSONArray allIssueTypes;
+        try {
+            allIssueTypes = new JSONArray(resource.get().getEntity(String.class));
+        } catch (JSONException ex) {
+            throw new RuntimeException(ex);
+        }
+        return Json.stream(allIssueTypes);
     }
 
     /**
