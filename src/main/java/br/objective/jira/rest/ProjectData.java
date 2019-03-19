@@ -12,6 +12,7 @@ public class ProjectData {
 	public String projectTypeKey;
 	public String projectTemplateKey;
 	public String lead;
+	public Long projectCategory;
 	public Long permissionScheme;
 	public Long issueTypeScreenScheme;
 	public Long workflowScheme;
@@ -26,11 +27,12 @@ public class ProjectData {
 	public String toString() {
 		return "ProjectData [name=" + name + ", key=" + key + ", description=" + description + ", projectTypeKey="
 				+ projectTypeKey + ", projectTemplateKey=" + projectTemplateKey + ", lead=" + lead
-				+ ", permissionScheme=" + permissionScheme + ", issueTypeScreenScheme=" + issueTypeScreenScheme
-				+ ", workflowScheme=" + workflowScheme + ", notificationScheme=" + notificationScheme
-				+ ", fieldConfigurationScheme=" + fieldConfigurationScheme + ", issueTypeScheme=" + issueTypeScheme
-				+ ", customFields=" + Arrays.toString(customFields) + ", userInRoles=" + userInRoles
-				+ ", groupInRoles=" + groupInRoles + "]";
+				+ ", projectCategory=" + projectCategory + ", permissionScheme=" + permissionScheme
+				+ ", issueTypeScreenScheme=" + issueTypeScreenScheme + ", workflowScheme=" + workflowScheme
+				+ ", notificationScheme=" + notificationScheme + ", fieldConfigurationScheme="
+				+ fieldConfigurationScheme + ", issueTypeScheme=" + issueTypeScheme + ", customFields="
+				+ Arrays.toString(customFields) + ", userInRoles=" + userInRoles + ", groupInRoles=" + groupInRoles
+				+ "]";
 	}
 
 }

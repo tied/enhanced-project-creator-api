@@ -73,6 +73,18 @@ public class JiraTestUtils {
         }
     }
 
+    public static void createProjectCategory(String name, String description) {
+        Resource resource = jsonResource("http://localhost:2990/jira/rest/api/2/projectCategory");
+        try {
+            JSONObject request = new JSONObject()
+                    .put("name", name)
+                    .put("description", description);
+            resource.post(request.toString());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void createRoles() {
         List<String> roleNames = allRoleNames();
 
