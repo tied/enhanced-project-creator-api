@@ -4,6 +4,8 @@ import com.atlassian.jira.bc.project.ProjectCreationData;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.project.AssigneeTypes;
 import com.atlassian.jira.project.Project;
+import com.atlassian.jira.project.ProjectCategory;
+import com.atlassian.jira.project.ProjectManager;
 import com.atlassian.jira.user.ApplicationUser;
 
 public class ProjectCreationWrapper {
@@ -17,12 +19,16 @@ public class ProjectCreationWrapper {
 				.withLead(lead)
 				.withAssigneeType(AssigneeTypes.PROJECT_LEAD)
 				.build();
-		
-	    Project newProject = ComponentAccessor.getProjectManager().createProject(
-	    		ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser(), 
-	    		projectData);
-	    
-	    response.idOfCreatedProject = newProject.getId();
+
+		ProjectManager projectManager = ComponentAccessor.getProjectManager();
+		Project newProject = projectManager.createProject(
+				ComponentAccessor.getJiraAuthenticationContext().getLoggedInUser(), 
+				projectData);
+
+		ProjectCategory projectCategory = projectManager.getProjectCategory(data.projectCategory);
+		projectManager.setProjectCategory(newProject, projectCategory);
+
+		response.idOfCreatedProject = newProject.getId();
 		return newProject;
 	}
 }
