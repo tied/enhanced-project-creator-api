@@ -17,7 +17,7 @@ public class ProjectCreationWrapper {
 				.withProjectTemplateKey(data.projectTemplateKey)
 				.withDescription(data.description)
 				.withLead(lead)
-				.withAssigneeType(AssigneeTypes.PROJECT_LEAD)
+				.withAssigneeType(AssigneeTypes.UNASSIGNED)
 				.build();
 
 		ProjectManager projectManager = ComponentAccessor.getProjectManager();
