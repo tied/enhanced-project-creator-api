@@ -21,4 +21,10 @@
   <rest name="Project Builder Resource" i18n-name-key="project-builder-resource.name" key="project-builder-resource" path="/projectbuilder" version="1.0">
     <description key="project-builder-resource.description">The Project Builder Resource Plugin</description>
   </rest>
+
+  <servlet-filter name="Impersonation Servlet Filter" i18n-name-key="impersonation-servlet-filter.name" key="impersonation-servlet-filter" class="br.objective.jira.filter.ImpersonationServletFilter" location="before-dispatch" weight="100">
+    <description key="impersonation-servlet-filter.description">The Impersonation Servlet Filter</description>
+    <url-pattern>/rest/api/*</url-pattern>
+  ﻿</servlet-filter>
+
 </atlassian-plugin>
