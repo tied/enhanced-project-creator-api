@@ -1,6 +1,7 @@
 # Enhanced Project Builder
 
 This is a jira plugin that exposes a REST api to create a new project with all required schemes and custom field associations.
+This plugin also has some functions to use in Workflow validators, conditions and post-functions.
 
 ## Endpoints
 
@@ -17,6 +18,10 @@ Expected payload:
     "userInRoles"              : {
         "Role Name 1"     : ["user1", "user2"],
         "Role Name 2"     : ["user3", "user4"]
+    },
+    "groupInRoles"              : { // Optional
+        "Role Name 2"     : ["group1", "group2"],
+        "Role Name 3"     : ["group3", "group4"]
     },
     "issueTypeScheme"          : "id of issue type scheme",
     "workflowScheme"           : "id of workflow scheme",
@@ -37,8 +42,44 @@ Returns the list of all jira users. Used to allow external systems to create use
 
 You may pass a query parameter to search filter results:
 ```
-/res/projectbuild/1.0/users?q=name
+/rest/projectbuild/1.0/users?q=name
 ```
+
+### Issue fields required in transitions : /rest/projectbuilder/1.0/issue/{issueKey}/fields-required-in-transitions
+Returns the list of all fields required in transitions according to an issue key and a list of transition IDs.
+
+```
+/rest/projectbuild/1.0/issue/ISSUE-1/fields-required-in-transitions
+```
+Payload:
+```
+[ 11, 21 ]
+```
+Response:
+```
+[
+    {
+        "id": 11,
+        "requiredFields": [
+            "fixVersions"
+        ],
+    },
+    {
+        "id": 21,
+        "requiredFields": [],
+    }
+]
+```
+
+## Workflow scripts
+
+To use this plugin in the workflow scripts, you have to put this code:
+```
+import com.onresolve.scriptrunner.runner.customisers.WithPlugin;
+@WithPlugin("br.objective.jira.enhanced-project-creator-api")_
+```
+After that, you can import the classes that you need.
+
 
 ## Development
 
